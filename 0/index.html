@@ -48,7 +48,7 @@
         const container = document.getElementById('media-container');
         images.forEach(img => {
             const imageElement = document.createElement('img');
-            imageElement.src = `media/${img}`;
+            imageElement.src = img;
             imageElement.alt = img;
             container.appendChild(imageElement);
         });
