@@ -19,39 +19,59 @@
         a:hover {
             text-decoration: underline;
         }
+        .media {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .media figure {
+            margin: 0;
+            text-align: center;
+        }
         .media img {
             max-width: 100%;
             height: auto;
-            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .media figcaption {
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .full-width {
+            grid-column: span 2;
         }
     </style>
 </head>
 <body>
     <h1>Project 0</h1>
-    <p>Welcome to Project 0! Here you can provide a brief description of the project, what it does, and any key highlights.</p>
+    <p>The first two images show a close-up of a person, followed by a shot of the same person from farther away. The second set of images features a close-up of a light pole and then a view of it from a distance. The GIF at the bottom demonstrates a dolly zoom effect on a water bottle. To create this, I captured several images of the bottle, each time stepping back a few feet while zooming in on it.</p>
     
     <h2>Media</h2>
-    <div class="media" id="media-container"></div>
+    <div class="media">
+        <figure>
+            <img src="Subject_Image_Close.jpg" alt="Subject Close">
+            <figcaption>Subject Close-Up</figcaption>
+        </figure>
+        <figure>
+            <img src="Subject_Image_Far.jpg" alt="Subject Far">
+            <figcaption>Subject from a Distance</figcaption>
+        </figure>
+        <figure>
+            <img src="Lightpost_closeup.jpg" alt="Lightpost Close">
+            <figcaption>Lightpost Close-Up</figcaption>
+        </figure>
+        <figure>
+            <img src="Lightpost_further.jpg" alt="Lightpost Far">
+            <figcaption>Lightpost from a Distance</figcaption>
+        </figure>
+        <figure class="full-width">
+            <img src="Gif.gif" alt="Demo GIF">
+            <figcaption>Dolly Zoom</figcaption>
+        </figure>
+    </div>
 
     <p><a href="../index.html">Back to Portfolio Home</a></p>
-
-    <script>
-        // List your images here
-        const images = [
-            "Subject_Image_Far.jpg",
-            "Subject_Image_Close.jpg",
-            "Lightpost_closeup.jpg",
-            "Lightpost_further.jpg"
-
-        ];
-
-        const container = document.getElementById('media-container');
-        images.forEach(img => {
-            const imageElement = document.createElement('img');
-            imageElement.src = img;
-            imageElement.alt = img;
-            container.appendChild(imageElement);
-        });
-    </script>
 </body>
 </html>
