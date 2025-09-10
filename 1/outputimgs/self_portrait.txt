@@ -1,0 +1,2 @@
+Green Shift: (80, 32).
+Red Shift: (176, 32).

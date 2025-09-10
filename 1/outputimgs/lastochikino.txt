@@ -1,0 +1,2 @@
+Green Shift: (0, 0).
+Red Shift: (80, -16).

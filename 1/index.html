@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project 1</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #1e1e1e;
+      color: #fff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 15px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    p {
+      line-height: 1.6;
+    }
+    .image-section {
+      margin-top: 40px;
+    }
+    .image-item {
+      margin-bottom: 30px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 20px;
+    }
+    .image-item img {
+      max-width: 100%;
+      border-radius: 10px;
+      display: block;
+      margin: 10px 0;
+    }
+    .txt-content {
+      background: #222;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Project 1</h1>
+    <p>
+      For this project, I developed a script that reconstructs color photographs from Prokudin-Gorskii glass plate images using image processing techniques. The plates consist of three separate exposures, which I treated as the blue, green, and red channels of the final image.
+    </p>
+    <p>
+      To align the channels, I implemented an image pyramid algorithm. At each level of the pyramid, the images were downsampled to a smaller resolution, making the alignment process faster and more efficient. I then applied an exhaustive search within a fixed displacement window to find the best alignment between two channels. The estimated displacement was scaled up as the pyramid was traversed back to the original resolution, and the channels were shifted accordingly. This process was implemented recursively, aligning the green channel to the blue channel, and then the red channel to the blue channel.
+    </p>
+    <p>
+      For scoring displacements, I used Normalized Cross-Correlation (NCC), which measures similarity by computing the dot product between two normalized vectors. The displacement that maximized the NCC score was selected as the optimal alignment.
+    </p>
+    <p>
+      The code that has been submitted uses the same parameters for every image except for the <strong>emir.tif</strong> image. This one was a bit more challenging and I had to downsample the image to only 1024 for the min distance, and align the blue and red frames to the green frame. The reason for this is because the contrast for the subject was significantly different between the three image frames. By passing in a larger image frame into the align function, and playing around with the image frame alignment, I was able to produce much better alignment for the emir.
+    </p>
+
+    <div class="image-section" id="images-container">
+      <h2>Reconstructed Images and Displacements</h2>
+      <!-- Images will be added here dynamically -->
+    </div>
+  </div>
+
+  <script>
+    const images = [
+      "cathedral", "church", "emir", "harvesters", "icon", "italil",
+      "lastochikino", "lugano", "melons", "monastery", "myimg2", "myimg4",
+      "self_portrait", "siren", "three_generations", "tobolsk"
+    ];
+
+    const container = document.getElementById('images-container');
+
+    images.forEach(name => {
+      const item = document.createElement('div');
+      item.classList.add('image-item');
+
+      const title = document.createElement('h3');
+      title.textContent = `${name}.jpg`;
+      item.appendChild(title);
+
+      const img = document.createElement('img');
+      img.src = `./outputimgs/${name}.jpg`;
+      img.alt = name;
+      item.appendChild(img);
+
+      const txtDiv = document.createElement('div');
+      txtDiv.classList.add('txt-content');
+      fetch(`./outputimgs/${name}.txt`)
+        .then(response => response.text())
+        .then(text => {
+          txtDiv.textContent = text;
+        })
+        .catch(err => {
+          txtDiv.textContent = "Unable to load displacement file.";
+          console.error(err);
+        });
+
+      item.appendChild(txtDiv);
+      container.appendChild(item);
+    });
+  </script>
+</body>
+</html>

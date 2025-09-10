@@ -1,0 +1,2 @@
+Blue Shift: (-48, -24).
+Red Shift: (56, 16).
