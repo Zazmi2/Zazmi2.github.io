@@ -4,38 +4,49 @@
     <meta charset="UTF-8">
     <title>Image Processing Project</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            line-height: 1.6;
-        }
-        h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 4px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-        }
-        .img-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .img-container {
-            flex: 1;
-            min-width: 300px;
-        }
-        .caption {
-            font-style: italic;
-            color: #555;
-        }
-        hr {
-            margin: 40px 0;
-        }
+    /* Modal styles for zoom effect */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        padding-top: 60px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.9);
+    }
+
+    .modal-content {
+        display: block;
+        margin: auto;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+    .close {
+        position: absolute;
+        top: 30px;
+        right: 45px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #bbb;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Optional: cursor style for zoomable images */
+    img.zoomable {
+        cursor: zoom-in;
+        transition: transform 0.2s;
+    }
     </style>
 </head>
 <body>
@@ -45,8 +56,8 @@
     <h2>Part 1: Filters and Edges</h2>
 
     <h3>1.1 Convolution with NumPy</h3>
-    <p>I implemented convolution using only NumPy. The outputs were compared with <code>scipy.signal.convolve2d</code>. Runtime was measured using the notebook output. The runtime with four for loops is 2min and 16sec. The runtime with two for loops is 12.1 seconds. For comparison, using scipy's conv2d took 0.8 seconds. These tests used the box filter for the kernel. My implementation for padding utilizes <code>np.pad</code> and pads it with one layer of ones around the image. Technically it can't be adjusted, but I used different implementations for the padding. I modified the padding in my conv2d method to be more versatile in my part 2 implementations. Scipy's padding provides handling for boundary conditions such as <code>'symm'</code>, <code>'wrap'</code>, and <code>'fill'</code>, making it more flexible and efficient. My implementation supports padding with <code>reflect</code>, <code>constant</code>, and <code>edge</code> modes.</p>
-
+    <p>I implemented convolution using only NumPy. The outputs were compared with <code>scipy.signal.convolve2d</code>. Runtime was measured using the notebook output. The runtime with four for loops is 2min and 16sec. The runtime with two for loops is 12.1 seconds. For comparison, using scipy's conv2d took 0.8 seconds.These tests used the box filter for the kernel. My implementation for padding utlizes np.pad and padds it with one layer of ones around the image. Techincally it can't be adjust but can do different implementations for the padding. I modified the padding in my conv2d method to be more versatile in my part 2 implementations. Scipy's padding  provides handling for boundary conditions such as `'symm'` (mirroring), `'wrap'`, and `'fill'`, making it more flexible and efficient for most practical use cases.  
+    My implementation supports padding with <code>reflect</code>, <code>constant</code>, and <code>edge</code> modes.</p>
     <div class="img-row">
         <div class="img-container">
             <img src="outputimgs/part1_1/code_snippet.jpg" alt="Custom Conv2d Code Snippet">
@@ -100,19 +111,18 @@
         </div>
     </div>
 
-    <p>I tuned the threshold to balance edge detection and noise suppression. 85 was the best threshold I found. Any higher and the edges break up. Any lower and there’s too much noise.</p>
+    <p>I tuned the threshold to balance edge detection and noise suppression. 85 is the best threshold i found. Any higher and the edges it can find end up breaking up. Any lower and theres a good amount of noise..</p>
 
     <h3>1.3 Gaussian and DoG Filters</h3>
     <p>
-        To reduce noise in edge detection, we first smoothed the image using a <code>cv2.getGaussianKernel</code>-based 2D Gaussian filter.
-        I then computed gradients using finite difference filters (D<sub>x</sub>, D<sub>y</sub>) on the blurred image.
-        This produced much cleaner edge maps than applying derivatives directly to the raw image.
+        To reduce noise in edge detection, we first smoothed the image using a <code>cv2.getGaussianKernel</code>-based 2D Gaussian filter. 
+        I then computed gradients using finite difference filters (D<sub>x</sub>, D<sub>y</sub>) on the blurred image. 
+        This produced much cleaner edge maps than applying derivatives directly to the raw image. I didn't need as high of a threshold value.
     </p>
-
     <p>
-        I also constructed Derivative of Gaussian (DoG) filters by convolving the Gaussian filter with D<sub>x</sub> and D<sub>y</sub> to create DoG<sub>x</sub> and DoG<sub>y</sub>.
-        These were then applied directly to the image in a single convolution step. This gave identical results to the two-step method, confirming the linearity of convolution.
-    </p>
+        I also constructed Derivative of Gaussian (DoG) filters by convolving the Gaussian filter with D<sub>x</sub> and D<sub>y</sub> to create DoG<sub>x</sub> and DoG<sub>y</sub>. 
+        These were then applied directly to the image in a single convolution step. This approach gave identical results to the two-step method, confirming the linearity of convolution.
+    </p>    
 
     <div class="img-row">
         <div class="img-container">
@@ -141,7 +151,7 @@
     <h2>Part 2: Applications</h2>
 
     <h3>2.1 Unsharp Mask</h3>
-    <p>The unsharp mask sharpens an image by amplifying high frequencies: <code>sharpened = original + alpha * (original - blurred)</code>. As alpha increases, edges become more prominent. I also tested a case where a sharp image was blurred and then sharpened. If the same Gaussian sigma was used, the final sharpened image closely matched the original.</p>
+    <p>The unsharp mask sharpens an image by amplifying high frequencies. It's computed as: <code>sharpened = original + alpha * (original - blurred)</code>. As you increase the alpha, the edges more prominent. Image 1 is the taj mahal and you can see the edges more amplified. The second set of images, its a little harder to tell but if you look closely the edges are more darker. The third set of images was I test I ran where I took a sharp image blurred it, and then sharpened it again to see if the final sharpened image would be the same as the original image. I found that as long as the standard deviation is the same between the gaussian blur that was done to blur the image, and the gaussian blur used in the sharpen function, the image looks identical between the original and the blur + sharpened image.</p>
 
     <div class="img-row">
         <div class="img-container">
@@ -185,7 +195,7 @@
     </div>
 
     <h3>2.2 Hybrid Images</h3>
-    <p>Hybrid images combine high-frequency content from one image with low-frequency from another. I used aligned images, Gaussian filters, and sigma tuning for the best results.</p>
+    <p>Hybrid images combine high-frequency from one image and low-frequency from another. I aligned images, applied Gaussian filters, and tuned sigma values for the high and low frequencies. The first pair of images was provided by CS180. The other sets of images were pictures I had of my friends, I had aligned.</p>
 
     <h4>Process (Cat + Derek):</h4>
     <div class="img-row">
@@ -240,7 +250,7 @@
     </div>
 
     <h3>2.3 + 2.4 Multiscale Blending</h3>
-    <p>I implemented Laplacian pyramid blending using Gaussian/Laplacian stacks and custom masks (vertical, circular). I used increasing sigma per level for smoother transitions.</p>
+    <p>I implemented Laplacian pyramid blending. The process uses Gaussian and Laplacian stacks of both images and the mask. I created a vertical and circular mask. I modified my Conv2d method from part 1 to support convolutions for color images. In order to create a smoother blending, I modifed the mask to have a blend width which transition the values smoother from 1 to 0, from each side of the mask. In addition I increase the sigma value of the gaussian kernel as I created more stacks. This made the blending process smoother.</p>
 
     <h4>Apple + Orange (Figure 3.42 Replication):</h4>
     <div class="img-row">
@@ -290,6 +300,7 @@
             <img src="outputimgs/part2_3_4/earthMarsCircularBlendedv2.jpg" alt="Blended 2">
         </div>
     </div>
+    <p>This blend uses an circular mask. I changed the radius ratio between the Earth and Mars between both images </p>
 
 </body>
 </html>
