@@ -42,11 +42,15 @@
         cursor: pointer;
     }
 
-    /* Optional: cursor style for zoomable images */
-    img.zoomable {
-        cursor: zoom-in;
-        transition: transform 0.2s;
+    img {
+        max-width: 800px; /* or whatever cap you want */
+        max-height: 600px;
+        width: auto;
+        height: auto;
+        display: block;
+        margin: auto;
     }
+    
     </style>
 </head>
 <body>
