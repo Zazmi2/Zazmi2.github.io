@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Processing Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 4px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+        }
+        .img-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .img-container {
+            flex: 1;
+            min-width: 300px;
+        }
+        .caption {
+            font-style: italic;
+            color: #555;
+        }
+        hr {
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image Processing Final Report</h1>
+
+    <h2>Part 1: Filters and Edges</h2>
+
+    <h3>1.1 Convolution with NumPy</h3>
+    <p>I implemented convolution using only NumPy. The outputs were compared with <code>scipy.signal.convolve2d</code>. Runtime was measured using the notebook output. The runtime with four for loops is 2min and 16sec. The runtime with two for loops is 12.1 seconds. For comparison, using scipy's conv2d took 0.8 seconds.These tests used the box filter for the kernel. My implementation for padding utlizes np.pad and padds it with one layer of ones around the image. Techincally it can't be adjust but can do different implementations for the padding. I modified the padding in my conv2d method to be more versatile in my part 2 implementations. Scipy's padding  provides handling for boundary conditions such as `'symm'` (mirroring), `'wrap'`, and `'fill'`, making it more flexible and efficient for most practical use cases.  
+    My implementation supports padding with <code>reflect</code>, <code>constant</code>, and <code>edge</code> modes.</p>
+    
+    <div class="img-row">
+        <div class="img-container">
+            <img src="outputimgs/part1_1/code_snippet.jpg" alt="Custom Conv2d Code Snippet">
+            <div class="caption">Custom Conv2d Code Snippet</div>
+        </div>
+        <div class="img-container">
+            <img src="outputimgs/part1_1/Boxconv2d.jpg" alt="Custom Convolution Output Box Filter - Sliding Window Conv2d">
+            <div class="caption">Custom Convolution Output Box Filter - Sliding Window Conv2dt</div>
+        </div>
+        <div class="img-container">
+            <img src="outputimgs/part1_1/Boxconv2dsimple.jpg" alt="Custom Convolution Output Box Filter - Naive(four for loops) Conv2d">
+            <div class="caption">Custom Convolution Output Box Filter - Naive(four for loops) Conv2d</div>
+        </div>
+        <div class="img-container">
+            <img src="outputimgs/part1_1/dxSelfie.jpg" alt="Custom Convolution Output Dx Filter - Sliding Window Conv2d">
+            <div class="caption">Custom Convolution Output Dx Filter - Sliding Window Conv2d</div>
+        </div>
+        <div class="img-container">
+            <img src="outputimgs/part1_1/dySelfie.jpg" alt="Custom Convolution Output Dy Filter - Sliding Window Conv2d">
+            <div class="caption">Custom Convolution Output Dy Filter - Sliding Window Conv2d</div>
+        </div>
+        <div class="img-container">
+            <img src="outputimgs/part1_1/scipyimage.jpg" alt="Scipy Convolution Output Box Filter">
+            <div class="caption">Scipy Convolution Output Box Filtert</div>
+        </div>
+    </div>
+
+    <p>Boundary differences were minimal. Our implementation was slower due to Python loops, but using <code>sliding_window_view</code> improved performance significantly.</p>
+
+    <h3>1.2 Partial Derivatives and Edge Detection</h3>
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part1_2/Dx.jpg" alt="Partial Derivative X">
+            <div class="caption">Partial Derivative Y</div>
+        </div>
+        <div class="img-container">
+            <img src="part1_2/Dy.jpg" alt="Partial Derivative Y">
+            <div class="caption">Partial Derivative Y</div>
+        </div>
+    </div>
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part1_2/grad_mag.jpg" alt="Gradient Magnitude">
+            <div class="caption">Gradient Magnitude</div>
+        </div>
+        <div class="img-container">
+            <img src="part1_2/edges.jpg" alt="Edges">
+            <div class="caption">Edge Map</div>
+        </div>
+    </div>
+
+    <p>I tuned the threshold to balance edge detection and noise suppression. 85 is the best threshold i found. Any higher and the edges it can find end up breaking up. Any lower and theres a good amount of noise..</p>
+
+    <h3>1.3 Gaussian and DoG Filters</h3>
+    <p>
+        To reduce noise in edge detection, we first smoothed the image using a <code>cv2.getGaussianKernel</code>-based 2D Gaussian filter. 
+        I then computed gradients using finite difference filters (D<sub>x</sub>, D<sub>y</sub>) on the blurred image. 
+        This produced much cleaner edge maps than applying derivatives directly to the raw image. I didn't need as high of a threshold value.
+    </p>
+
+    <p>
+        I also constructed Derivative of Gaussian (DoG) filters by convolving the Gaussian filter with D<sub>x</sub> and D<sub>y</sub> to create DoG<sub>x</sub> and DoG<sub>y</sub>. 
+        These were then applied directly to the image in a single convolution step. This approach gave identical results to the two-step method, confirming the linearity of convolution.
+    </p>    
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part1_3/grad_mag.jpg" alt="Gradient Magnitude DoG">
+            <div class="caption">Gradient Magnitude</div>
+        </div>
+        <div class="img-container">
+            <img src="part1_3/edges.jpg" alt="Edges">
+            <div class="caption">Edgesr</div>
+        </div>
+    </div>
+
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part1_3_2/grad_mag.jpg" alt="Gradient Magnitude">
+            <div class="caption">Gradient Magnitude</div>
+        </div>
+        <div class="img-container">
+            <img src="part1_3_2/edges.jpg" alt="Edges">
+            <div class="caption">Edgesr</div>
+        </div>
+    </div>
+
+    <hr>
+
+    <h2>Part 2: Applications</h2>
+
+    <h3>2.1 Unsharp Mask</h3>
+    <p>The unsharp mask sharpens an image by amplifying high frequencies. It's computed as: <code>sharpened = original + alpha * (original - blurred)</code>. As you increase the alpha, the edges more prominent. Image 1 is the taj mahal and you can see the edges more amplified. The second set of images, its a little harder to tell but if you look closely the edges are more darker. The third set of images was I test I ran where I took a sharp image blurred it, and then sharpened it again to see if the final sharpened image would be the same as the original image. I found that as long as the standard deviation is the same between the gaussian blur that was done to blur the image, and the gaussian blur used in the sharpen function, the image looks identical between the original and the blur + sharpened image.</p>
+    
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part2_1/taj.jpg" alt="Taj Mahal before processing">
+            <div class="caption">Taj Mahal before processing</div>
+        </div>
+        <div class="img-container">
+            <img src="part2_1/Taj_HighFrequency.jpg" alt="Taj Mahal High Frequency">
+            <div class="caption">Taj Mahal Sharpenet</div>
+        </div>
+        <div class="img-container">
+            <img src="part2_1/taj_sharpened.jpg" alt="Taj Sharpened">
+            <div class="caption">Sharpened Taj Mahal</div>
+        </div>
+    </div>
+
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part2_1/20250920_214642.jpg" alt="Subject before processing">
+            <div class="caption">Taj Mahal before processing</div>
+        </div>
+        <div class="img-container">
+            <img src="part2_1/20250920_214642_sharpened.jpg" alt="Subject Sharpened">
+            <div class="caption">Sharpened Taj Mahal</div>
+        </div>
+    </div>
+
+    <div class="img-row">
+        <div class="img-container">
+            <img src="part2_1/20250621_162424.jpg" alt="Original Sharp Image">
+            <div class="caption">Taj Mahal before processing</div>
+        </div>
+        <div class="img-container">
+            <img src="part2_1/sharp_blurred.jpg" alt="Blurred">
+            <div class="caption">Blurred</div>
+        </div>
+        <div class="img-container">
+            <img src="part2_1/sharp_blurred_sharpened.jpg" alt="Sharpened Again">
+            <div class="caption">Sharpened Again</div>
+        </div>
+    </div>
+
+    <h4>Custom Image:</h4>
+    <img src="images/custom_sharpened.png" alt="Custom Sharpened" class="img-full">
+    <div class="caption">Sharpened Custom Image (varying sharpness shown)</div>
+
+    <h3>2.2 Hybrid Images</h3>
+    <p>Hybrid images combine high-frequency from one image and low-frequency from another. I aligned images, applied Gaussian filters, and tuned sigma values for the high and low frequencies. The first pair of images was provided by CS180. The other sets of images were pictures I had of my friends, I had aligned.</p>
+    
+    <h4>Process (Cat + Derek Picture):</h4>
+    <div class="img-row">
+        <img src="part2_2/DerekPicture.jpg" alt="Original Derek">
+        <img src="part2_2/bush_original.png" alt="Original Cat">
+        <img src="part2_2/catdudegrey.png" alt="Hybrid Image Grey">
+        <img src="part2_2/catdudecolor.png" alt="Hybrid Image Color">
+    </div>
+
+    <h4>Process (Subject 1 + Subject 2 Picture):</h4>
+    <div class="img-row">
+        <img src="part2_2/david.jpeg" alt="Original Subject 1">
+        <img src="part2_2/jason.jpeg" alt="Original Subject 2">
+        <img src="part2_2/JasonDavidv2.png" alt="Hybrid Image">
+    </div>
+
+    <h4>Fourier Transforms:</h4>
+    <div class="img-row">
+        <img src="part2_2/2_2FFTTable.png" alt="FFT Table">
+    </div>
+
+    <h4>Process (Subject 1 + Subject 2 Picture):</h4>
+    <div class="img-row">
+        <img src="part2_2/jeffv2.jpg" alt="Original Subject 1">
+        <img src="part2_2/bush.jpg" alt="Original Subject 2">
+        <img src="part2_2/jeffandrewgrey.png" alt="Hybrid Image Grey">
+        <img src="part2_2/jeffandrewcolor.png" alt="Hybrid Image Color">
+    </div>
+
+    <h3>2.3 + 2.4 Multiscale Blending</h3>
+    <p>I implemented Laplacian pyramid blending. The process uses Gaussian and Laplacian stacks of both images and the mask. I created a vertical and circular mask. I modified my Conv2d method from part 1 to support convolutions for color images. In order to create a smoother blending, I modifed the mask to have a blend width which transition the values smoother from 1 to 0, from each side of the mask. In addition I increase the sigma value of the gaussian kernel as I created more stacks. This made the blending process smoother.</p>
+
+    <h4>Apple + Orange (Figure 3.42 Replication):</h4>
+    <img src="part2_3_4/2_3_4 sTACKS.png" alt="Blended Apple + Orange">
+
+    <h4>Final Orange Apple Blend:</h4>
+    <img src="part2_3_4/orange.jpeg" alt="Original 1">
+    <img src="part2_3_4/apple.jpeg" alt="Original 2">
+    <img src="part2_3_4/orapleFinal.png" alt="Blended">
+
+    <h4>Dodge Charger White and Silver:</h4>
+    <div class="img-row">
+        <img src="part2_3_4/dodgesilver.jpg" alt="Silver">
+        <img src="part2_3_4/dodgewhite.jpg" alt="White">
+        <img src="part2_3_4/dodgesilverwhiteblended.png" alt="Blended">
+    </div>
+
+    <h4>Earth and Mars:</h4>
+    <div class="img-row">
+        <img src = "part2_3_4/earth.jpeg" alt="Earth">
+        <img src= "part2_3_4/mars.jpg" alt="Mars">
+        <img src="part2_3_4/earthMarsblendedv2.jpg.png" alt="Custom Blend 1">
+        <img src="part2_3_4/earthMarsCircularBlendedv2.jpg.png" alt="Custom Blend 1">
+    </div>
+
+    <p>This blend uses an circular mask. I changed the radius ratio between the Earth and Mars between both images </p>
+
+</body>
+</html>
