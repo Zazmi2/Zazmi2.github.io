@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS280A Image Mosaicing Assignment</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    section {
+      margin-bottom: 50px;
+    }
+    .images {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .images img {
+      max-width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+    p {
+      max-width: 800px;
+      margin: 10px auto;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CS280A: Image Mosaicing Assignment</h1>
+
+    <!-- A.1: Shoot the Pictures -->
+    <section id="a1">
+      <h2>A.1: Shoot and Digitize Pictures</h2>
+      <p>Here are the sets of images with projective transformations between them. These images were captured by rotating the camera around a fixed center of projection.</p>
+      <div class="images">
+        <img src="outputimgs/rock_pic1.jpg" alt="Set 1 - Image 1">
+        <img src="outputimgs/rock_pic2.jpg" alt="Set 1 - Image 2">
+        <img src="outputimgs/pic_2.jpg" alt="Set 2 - Image 1">
+        <img src="outputimgs/pic_3.jpg" alt="Set 2 - Image 2">
+        <img src="outputimgs/mse_1.jpg" alt="Set 3 - Image 1">
+        <img src="outputimgs/mse_2.jpg" alt="Set 3 - Image 2">
+      </div>
+    </section>
+
+    <!-- A.2: Recover Homographies -->
+    <section id="a2">
+      <h2>A.2: Recover Homographies</h2>
+      <p>Point correspondences were manually selected. Below are visualizations of correspondences, the system of equations, and the recovered homography matrices.</p>
+  <div class="images">
+    <div>
+      <img src="outputimgs/PointtoPointCorrespondences1.jpg" alt="Correspondences North Berkeley">
+      <pre>
+[[ 2.05716515e+00  4.79193132e-02 -1.72646035e+03]
+ [ 2.77236115e-01  1.62783748e+00 -6.53745347e+02]
+ [ 2.52174387e-04  2.24894471e-05  1.00000000e+00]]
+      </pre>
+    </div>
+
+    <div>
+      <img src="outputimgs/PointtoPointCorrespondences2.jpg" alt="Correspondences Mining Building">
+      <pre>
+[[ 1.92839578e+00 -2.06904725e-01 -2.89045568e+03]
+ [ 3.50907364e-01  1.43354737e+00 -1.04948836e+03]
+ [ 2.45250478e-04 -1.08486579e-04  1.00000000e+00]]
+      </pre>
+    </div>
+
+    <div>
+      <img src="outputimgs/PointtoPointCorrespondences3.jpg" alt="Correspondences Rock Pics">
+      <pre>
+[[ 4.72349376e-01  1.20889417e+00 -7.79746557e+02]
+ [ 8.61444746e-01 -8.10771526e-01  2.17762973e+02]
+ [-7.34380019e-05  3.47289536e-04  1.00000000e+00]]
+      </pre>
+    </div>
+  </div>
+    </section>
+
+    <!-- A.3: Warp the Images -->
+    <section id="a3">
+      <h2>A.3: Warp the Images</h2>
+      <p>Images were warped using both nearest-neighbor and bilinear interpolation. Comparisons between the two methods are shown below. Rectification examples are also included.</p>
+      <div class="images">
+        <img src="outputimgs/phone.jpg" alt="Original Image 1">
+        <img src="outputimgs/phone_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 1">
+        <img src="outputimgs/phone_fixed_Bilinear.jpg" alt="Bilinear Warp 1">
+        <img src="outputimgs/laptop.jpg" alt="Original Image 2">
+        <img src="outputimgs/laptop_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 2">
+        <img src="outputimgs/laptop_fixed_bilinear.jpg" alt="Bilinear Warp 2">
+      </div>
+    </section>
+
+    <!-- A.4: Blend the Images into a Mosaic -->
+    <section id="a4">
+      <h2>A.4: Blend Images into a Mosaic</h2>
+      <p>The images were blended into mosaics using weighted averaging to reduce edge artifacts. Here are three mosaics with their corresponding source images. The main pipeline included, warping one of the images into the other image's plane. I also added a translation component into the Homography matrix to account for the offset from the warping> I then blended them together and placed it into a mosaic.</p>
+      <div class="images">
+        <img src="outputimgs/pic_2.jpg" alt="Mosaic 1 Source Image">
+        <img src="outputimgs/pic_3.jpg" alt="Mosaic 1 Source Image">
+        <img src="outputimgs/panaroma_1.png" alt="Mosaic 1">
+        <img src="outputimgs/mse_1.jpg" alt="Mosaic 2 Source Image">
+        <img src="outputimgs/mse_2.jpg" alt="Mosaic 2 Source Image">
+        <img src="outputimgs/panaroma_2.png" alt="Mosaic 2">
+        <img src="outputimgs/pic_2.jpg" alt="Mosaic 3 Source Image">
+        <img src="outputimgs/pic_3.jpg" alt="Mosaic 3 Source Image">
+        <img src="outputimgs/panaroma3.png" alt="Mosaic 3">
+        
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>
