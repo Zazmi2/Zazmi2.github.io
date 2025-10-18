@@ -117,20 +117,37 @@
 
     <section id="a3">
       <h2>A.3: Warp the Images</h2>
-      <p>Images were warped using both nearest-neighbor and bilinear interpolation. Comparisons between the two methods are shown below. Rectification examples are also included.</p>
-      <div class="images">
-        <img src="outputimgs/phone.jpg" alt="Original Image 1">
-        <img src="outputimgs/phone_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 1">
-        <img src="outputimgs/phone_fixed_Bilinear.jpg" alt="Bilinear Warp 1">
-        <img src="outputimgs/laptop.jpg" alt="Original Image 2">
-        <img src="outputimgs/laptop_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 2">
-        <img src="outputimgs/laptop_fixed_bilinear.jpg" alt="Bilinear Warp 2">
-      </div>
-    </section>
+      <p>Images were warped using both nearest-neighbor and bilinear interpolation. Comparisons between the two methods are shown below. Rectification examples are also included. Nearest Neighbor is quicker than Bilinear interpolation which makes sense because with Bilinear Interpolation, we have to average nearby pixels, while with Nearest Neighbor, you use the nearest pixel's value so it had less computation. Bilinear interpolation had better results overall though.</p>
+        <div class="images">
+          <figure>
+            <img src="outputimgs/phone.jpg" alt="Original Image 1">
+            <figcaption>Original Image 1</figcaption>
+          </figure>
+          <figure>
+            <img src="outputimgs/phone_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 1">
+            <figcaption>Nearest Neighbor Warp 1</figcaption>
+          </figure>
+          <figure>
+            <img src="outputimgs/phone_fixed_Bilinear.jpg" alt="Bilinear Warp 1">
+            <figcaption>Bilinear Warp 1</figcaption>
+          </figure>
+          <figure>
+            <img src="outputimgs/laptop.jpg" alt="Original Image 2">
+            <figcaption>Original Image 2</figcaption>
+          </figure>
+          <figure>
+            <img src="outputimgs/laptop_fixed_NearestNeighbor.jpg" alt="Nearest Neighbor Warp 2">
+            <figcaption>Nearest Neighbor Warp 2</figcaption>
+          </figure>
+          <figure>
+            <img src="outputimgs/laptop_fixed_bilinear.jpg" alt="Bilinear Warp 2">
+            <figcaption>Bilinear Warp 2</figcaption>
+          </figure>
+        </div>
 
     <section id="a4">
       <h2>A.4: Blend Images into a Mosaic</h2>
-      <p>The images were blended into mosaics using weighted averaging to reduce edge artifacts. Here are three mosaics with their corresponding source images.</p>
+      <p>The images were blended into mosaics using weighted averaging to reduce edge artifacts. Here are three mosaics with their corresponding source images. The main procedure was: select correspondig points on both images, compute the homograph matrix based on the selected matrix. I then calculate the appropriate offsets for the translational side in order fit both images into a single mosaic. I then warped image 1 into image 2 using bilinear interpolation. After that, I blended both images using weighted averaging.</p>
       <div class="images">
         <img src="outputimgs/pic_2.jpg" alt="Mosaic 1 Source Image">
         <img src="outputimgs/pic_3.jpg" alt="Mosaic 1 Source Image">
@@ -157,7 +174,10 @@
       <h2>B.1: Harris Corner Detection</h2>
       <p>Implemented Harris Corner Detector and Adaptive Non-Maximal Suppression (ANMS) to obtain a uniform distribution of keypoints across the image. This is an example image that shows the results of Harris Corner detection followed by ANMS</p>
       <div class="images">
-        <img src="outputimgs/anms_corners.png" alt="Harris Corners">
+        <figure>
+          <img src="outputimgs/anms_corners.png" alt="Harris Corners">
+          <figcaption>Harris Corners</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -165,34 +185,57 @@
       <h2>B.2: Feature Descriptor Extraction</h2>
       <p>Extracted normalized 8x8 feature descriptors from 40x40 image patches centered at corner points. Each descriptor was bias/gain-normalized to ensure illumination invariance. Below shows five of the corners from the image that was showed in the section above.</p>
       <div class="images">
-        <img src="outputimgs/feature_extractions_5.png" alt="Sample Feature Descriptors">
+        <figure>
+          <img src="outputimgs/feature_extractions_5.png" alt="Sample Feature Descriptors">
+          <figcaption>Sample Feature Descriptors</figcaption>
+        </figure>
       </div>
     </section>
 
     <section id="b3">
       <h2>B.3: Feature Matching</h2>
-      <p>Used vectorized pairwise L2 distance computation between descriptors and applied Lowe’s ratio test to identify reliable correspondences between image pairs. Below are the matching correspondences from all the mosaics I eventually sitch together</p>
+      <p>Used vectorized pairwise L2 distance computation between descriptors and applied Lowe’s ratio test to identify reliable correspondences between image pairs. Below are the matching correspondences from all the mosaics I eventually stitch together</p>
       <div class="images">
-        <img src="outputimgs/pic2_3_matchted_features.png" alt="Matched Features img 1">
-        <img src="outputimgs/rockpic2_1_matched2_1.png" alt="Matched Features img 2">
-        <img src="outputimgs/car1_2_matched_features.png" alt="Matched Features img 3">
+        <figure>
+          <img src="outputimgs/pic2_3_matchted_features.png" alt="Matched Features img 1">
+          <figcaption>Matched Features img 1</figcaption>
+        </figure>
+        <figure>
+          <img src="outputimgs/rockpic2_1_matched2_1.png" alt="Matched Features img 2">
+          <figcaption>Matched Features img 2</figcaption>
+        </figure>
+        <figure>
+          <img src="outputimgs/car1_2_matched_features.png" alt="Matched Features img 3">
+          <figcaption>Matched Features img 3</figcaption>
+        </figure>
       </div>
     </section>
 
     <section id="b4">
       <h2>B.4: RANSAC for Robust Homography</h2>
-      <p>Implemented 4-point RANSAC to estimate homographies robustly against outliers. The resulting mosaics are automatically stitched using these computed transformations. I had to change one of my sets of images from the previous one (panoroma 2 to panaroma 4) since the Feature Extraction and matching the points between the two images wasn't accurate. I think this because the lighting affected the corner pixel intensities and it wasn't able to properly match the corners from each image together. I used a different set of images and it worked well since it was able to accuractly match the corners together well.</p>
+      <p>Implemented 4-point RANSAC to estimate homographies robustly against outliers. The resulting mosaics are automatically stitched using these computed transformations. I had to change one of my sets of images from the previous one (panorama 2 to panorama 4) since the Feature Extraction and matching the points between the two images wasn't accurate. I think this was because the lighting affected the corner pixel intensities and it wasn't able to properly match the corners from each image together. I used a different set of images and it worked well since it was able to accurately match the corners together.</p>
       <div class="images">
-        <img src="outputimgs/panaroma_1_ransacv2.png" alt="Automatic Mosaic 1">
-        <img src="outputimgs/panaroma_3_ransac.jpg" alt="Automatic Mosaic 2">
-        <img src="outputimgs/Panorma4_ransac_afterEdgeReductions.png" alt="Automatic Mosaic 3">
+        <figure>
+          <img src="outputimgs/panaroma_1_ransacv2.png" alt="Automatic Mosaic 1">
+          <figcaption>Automatic Mosaic 1</figcaption>
+        </figure>
+        <figure>
+          <img src="outputimgs/panaroma_3_ransac.jpg" alt="Automatic Mosaic 2">
+          <figcaption>Automatic Mosaic 2</figcaption>
+        </figure>
+        <figure>
+          <img src="outputimgs/Panorma4_ransac_afterEdgeReductions.png" alt="Automatic Mosaic 3">
+          <figcaption>Automatic Mosaic 3</figcaption>
+        </figure>
       </div>
+    </section>
+
     </section>
 
     <section id="part-differences">
     <h2>Differences Between Part A and Part B</h2>
     <p>
-      The results between part a and part b ended up being very similar. Part b might have slightly better results because the corner detection and matching through ransac would be more accurate vs manually selecting points as I did in part a. Both methods used a simple blending process where I averaged the pixel values for the masks. This simple averaging method made it way better than just simpling stiching the two images together. To make the edge artifcats smoother, one can use laplcian blending as well.
+      The results between part a and part b ended up being very similar. Part b might have slightly better results because the corner detection and matching through ransac would be more accurate vs manually selecting points as I did in part a. Both methods used a simple blending process where I used . This simple averaging method made it way better than just simpling stiching the two images together. To make the edge artifcats smoother, one can use laplcian blending as well.
     </p>
 </section>
   </div>
