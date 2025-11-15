@@ -207,10 +207,10 @@ wider layers produces the most accurate reconstructions.
 
 <h4>Implementation Summary, Part 2.2: Sampling</h4>
 <ul>
-    <li>Following ray creation, I sampled rays from multiple images by either sampling a fixed number of rays per image or globally across all pixels.</li>
+    <li>Following ray creation, I sampled rays from multiple images by flattening all pixels from all the images and then doing global sampling once to get N rays from all images across all pixels.</li>
     <li>Then, I discretized each ray by sampling points uniformly between near and far planes along the ray.</li>
     <li>To improve training robustness, I added small random perturbations to the sample points during training, preventing overfitting.</li>
-    <li>I used 32 or 64 samples per ray as recommended for the project.</li>
+    <li>I used 64 samples per ray as recommended for the project.</li>
 </ul>
 
 <h4>Dataloader Integration</h4>
@@ -322,7 +322,7 @@ wider layers produces the most accurate reconstructions.
 <img src="outputimgs/novel_view (6).gif">
 
 <h3>Discussion</h3>
-<p>There were a lot of challenges I faced with my dataset. The celsius can wasn't as visibile but you can kind of see it in the video. For future use, I would use a different object, something that stands out more. Getting better captures of the object would've greatly improved the NeRF as well.</p>
+<p>There were a lot of challenges I faced with my dataset. The celsius can wasn't as visible but you can kind of see it in the video. For future use, I would use a different object, something that stands out more. Getting better captures of the object would've greatly improved the NeRF as well.</p>
 
 ---
 
