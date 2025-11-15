@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CS180 Project 4: Neural Radiance Fields</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #fafafa;
+        }
+        h1, h2, h3 {
+            color: #003262;
+        }
+        img, video {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .grid2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .nav {
+            background: #003262;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .nav a {
+            color: white;
+            margin-right: 15px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>CS180 / 280A — Project 4: Neural Radiance Fields</h1>
+
+<div class="nav">
+    <a href="#p0">Part 0</a>
+    <a href="#p1">Part 1</a>
+    <a href="#p2">Part 2</a>
+    <a href="#p26">Part 2.6</a>
+</div>
+
+<!-- ---------------------- PART 0 ------------------------- -->
+<h2 id="p0">Part 0 — Camera Calibration & Dataset Capture</h2>
+
+<h3>0.1 Calibration Results</h3>
+<p>
+For camera calibration, I captured 30–50 images of the provided 4×4 ArUco tags using my phone,
+keeping the focal length fixed. I varied the viewing angle and distance to ensure a well-conditioned
+calibration set. For each image, I used OpenCV’s ArUco detector to locate markers:
+
+<ul>
+    <li>Detected ArUco corners using <code>cv2.aruco.ArucoDetector</code></li>
+    <li>For each detected tag, extracted its 2D image corner coordinates</li>
+    <li>Assigned corresponding 3D corners assuming a known physical tag size
+        (e.g., a 2 cm × 2 cm tag with corners
+        [(0,0,0), (0.02,0,0), (0.02,0.02,0), (0,0.02,0)])</li>
+    <li>Accumulated valid 2D ↔ 3D correspondences across all images
+        (skipping images where no tag was detected)</li>
+    <li>Used <code>cv2.calibrateCamera()</code> to solve for intrinsic matrix K,
+        distortion coefficients, and per-image poses</li>
+</ul>
+
+This process produced the final camera intrinsics and distortion parameters used for the rest of the
+project, along with debug visualizations confirming correct ArUco detection.
+</p>
+
+
+<h3>0.2 Object Capture</h3>
+<p>
+For this part, I selected a Celsius can and placed it next to a printed ArUco tag on a tabletop.
+I captured 30–50 images of the can from different angles, keeping the same camera and zoom level
+as used for calibration.  
+</p>
+
+<h4>Example Captures of the Celsius Can</h4>
+<div class="grid2">
+    <img src="outputimgs/WhatsApp Image 2025-11-14 at 11.00.07_833a0faa.jpg" alt="Celsius can capture 1">
+    <img src="outputimgs/WhatsApp Image 2025-11-14 at 11.00.49_65f05177.jpg" alt="Celsius can capture 2">
+    <img src="outputimgs/WhatsApp Image 2025-11-14 at 11.00.52_7af28fa6.jpg" alt="Celsius can capture 3">
+    <img src="outputimgs/WhatsApp Image 2025-11-14 at 11.00.53_b75bfc64.jpg" alt="Celsius can capture 4">
+</div>
+
+
+<h3>0.3 Pose Estimation (PnP)</h3>
+<p>Screenshots from Viser that show the esitmated camera poses:</p>
+<div class="grid2">
+    <img src="outputimgs/part0_render_view_1.png">
+    <img src="outputimgs/part0_render_view_2.png">
+</div>
+
+<h3>0.4 Dataset Packaging</h3>
+<p>After calculating the intrinsics of my camera as well as taking images, I processed them and pacakged them into npz file for use later.</p>
+
+---
+
+<!-- ---------------------- PART 1 ------------------------- -->
+<h2 id="p1">Part 1 — Neural Field for 2D Image</h2>
+
+<h2 id="p1">Part 1 — Neural Field for 2D Image</h2>
+
+<h3>Implementation Summary</h3>
+<p>
+In this part, I experimented with representing 2D images using a Neural Field (essentially a 2D version of a NeRF). 
+I built a Multilayer Perceptron (MLP) with Sinusoidal Positional Encoding (PE) to map pixel coordinates 
+to RGB values. The MLP uses fully connected layers with ReLU activations, and a final Sigmoid to constrain 
+pixel colors to the [0, 1] range. Inputs were normalized coordinates (x/image_width, y/image_height) and 
+colors were normalized to [0,1] as well.
+</p>
+
+<h3>Network Architecture</h3>
+<p>Below is a reference for the MLP architecture I used:</p>
+<img src="outputimgs/2d_MLP.jpg" alt="MLP Architecture">
+<img src="outputimgs/2d_positional_encoding.jpg" alt="Positional Encoding">
+
+<h3>Datasets Used</h3>
+<p>I tested the network on both the provided fox image and my own image of the White House.</p>
+
+<h3>Hyperparameter Experiments</h3>
+<p>I experimented with different positional encoding frequency levels (<code>L</code> = 2, 6) and network widths 
+(channel sizes = 64, 256). Sampling 10k pixels per iteration allowed training without GPU memory issues. 
+Training ran for 10000 iterations using Adam with learning rate 1e-3. I backproped using MSE loss, 
+and PSNR was computed to evaluate reconstruction quality.</p>
+
+<h3>Results: Effect of Positional Encoding and Network Width</h3>
+<p>
+Higher positional encoding frequencies allow the network to capture finer details in the image, while 
+wider networks (more channels per layer) provide higher representational capacity. Combining higher PE and 
+wider layers produces the most accurate reconstructions.
+</p>
+
+<h4>Example Reconstructions</h4>
+<div class="grid2">
+    <img src="outputimgs/reconstructed_fox_10000_2_128.png" alt="Fox image, L=2, W=64">
+    <img src="outputimgs/reconstructed_fox_10000_6_256.png" alt="Fox image, L=6, W=256">
+    <img src="outputimgs/reconstructed_wh_10000_2_64.png" alt="White House, L=2, W=64">
+    <img src="outputimgs/reconstructed_10000_6_256.png" alt="White House, L=6, W=256">
+</div>
+
+<h3>PSNR Curve</h3>
+<p>Training quality measured using PSNR, showing improved reconstruction with higher frequencies and wider networks:</p>
+<img src="outputimgs/PSNR_whiteHouse.jpg" alt="PSNR curve">
+
+<h4>Fox Image — Training Progression</h4>
+<div class="grid2">
+    <img src="outputimgs/reconstructed_fox_500_6_256.png" alt="Fox training iteration 500">
+    <img src="outputimgs/reconstructed_fox_1000_6_256.png" alt="Fox training iteration 1000">
+    <img src="outputimgs/reconstructed_fox_2000_6_256.png" alt="Fox training iteration 2000">
+    <img src="outputimgs/reconstructed_fox_3000_6_256.png" alt="Fox training iteration 3000">
+    <img src="outputimgs/reconstructed_fox_4000_6_256.png" alt="Fox training iteration 4000">
+    <img src="outputimgs/reconstructed_fox_5000_6_256.png" alt="Fox training iteration 5000">
+    <img src="outputimgs/reconstructed_fox_6000_6_256.png" alt="Fox training iteration 6000">
+    <img src="outputimgs/reconstructed_fox_7000_6_256.png" alt="Fox training iteration 7000">
+    <img src="outputimgs/reconstructed_fox_8000_6_256.png" alt="Fox training iteration 8000">
+    <img src="outputimgs/reconstructed_fox_9000_6_256.png" alt="Fox training iteration 9000">
+    <img src="outputimgs/reconstructed_fox_10000_6_256.png" alt="Fox training iteration 10000">
+</div>
+
+<h4>White House Image — Training Progression</h4>
+<div class="grid2">
+    <img src="outputimgs/reconstructed_500_6_256.png" alt="White House training iteration 500">
+    <img src="outputimgs/reconstructed_1000_6_256.png" alt="White House training iteration 1000">
+    <img src="outputimgs/reconstructed_2000_6_256.png" alt="White House training iteration 2000">
+    <img src="outputimgs/reconstructed_3000_6_256.png" alt="White House training iteration 3000">
+    <img src="outputimgs/reconstructed_4000_6_256.png" alt="White House training iteration 4000">
+    <img src="outputimgs/reconstructed_5000_6_256.png" alt="White House training iteration 5000">
+    <img src="outputimgs/reconstructed_6000_6_256.png" alt="White House training iteration 6000">
+    <img src="outputimgs/reconstructed_7000_6_256.png" alt="White House training iteration 7000">
+    <img src="outputimgs/reconstructed_8000_6_256.png" alt="White House training iteration 8000">
+    <img src="outputimgs/reconstructed_9000_6_256.png" alt="White House training iteration 9000">
+    <img src="outputimgs/reconstructed_10000_6_256.png" alt="White House training iteration 10000">
+</div>
+
+
+---
+
+<!-- ---------------------- PART 2 ------------------------- -->
+<h2 id="p2">Part 2 — Full NeRF</h2>
+
+<section>
+  <h3>Background: Replicating the Lego NeRF from the Original Paper</h3>
+  <p>
+    As part of this project, I replicated the Neural Radiance Field (NeRF) results on the Lego scene, a canonical dataset from the original NeRF paper. Using the provided multi-view images and camera parameters from the authors, I trained the model to synthesize novel views that closely match those shown in the paper.
+  </p>
+</section>
+
+<h3>Implementation Summary, Part 2.1: Transformations</h3>
+<ul>
+    <li>First, I implemented the transformation from camera coordinates to world coordinates using rotation and translation matrices.</li>
+    <li>Next, I converted 3D points in the camera coordinate system to 2D pixel coordinates using the camera intrinsic matrix.</li>
+    <li>Then, I implemented the inverse process to convert pixel coordinates back to camera coordinates, given a depth value.</li>
+    <li>After that, I generated rays for each pixel by defining ray origins and normalized directions in world space.</li>
+    <li>I made sure these ray generation functions support batched inputs for efficiency.</li>
+</ul>
+
+<h4>Implementation Summary, Part 2.2: Sampling</h4>
+<ul>
+    <li>Following ray creation, I sampled rays from multiple images by either sampling a fixed number of rays per image or globally across all pixels.</li>
+    <li>Then, I discretized each ray by sampling points uniformly between near and far planes along the ray.</li>
+    <li>To improve training robustness, I added small random perturbations to the sample points during training, preventing overfitting.</li>
+    <li>I used 32 or 64 samples per ray as recommended for the project.</li>
+</ul>
+
+<h4>Dataloader Integration</h4>
+<p>To bring all components together, I created a <code>RaysData</code> dataloader class, which integrates images, camera intrinsics, and camera-to-world transformations to provide batched rays and corresponding pixel colors for training. This class:</p>
+<ul>
+    <li>Accepts multiple images along with their camera intrinsics (<code>K</code>) and extrinsics (<code>c2ws</code>).</li>
+    <li>Precomputes rays’ origins and directions for every pixel in all images using the <code>pixel_to_ray</code> function.</li>
+    <li>Stores the rays and pixel RGB values for efficient sampling.</li>
+    <li>Supports sampling random rays across all images to form batches during training.</li>
+    <li>Includes utility methods to retrieve rays from specific images or sample random rays globally.</li>
+</ul>
+<p>This dataloader effectively unifies coordinate transformations, ray generation, and pixel supervision, enabling streamlined training of the NeRF model.</p>
+
+
+
+<h3>Ray + Camera Visualization</h3>
+<p>Visualization of the camera frustums</p>
+<img src="outputimgs/lego_rays_view1.png">
+<img src="outputimgs/lego_rays_view2.png">
+
+<section>
+  <h2>Implementation Details: Neural Radiance Field (NeRF) Architecture and Volume Rendering</h2>
+
+  <h3>MLP Architecture</h3>
+  <p>
+      The neural network backbone is a multi-layer perceptron designed to predict color and density for 3D points and viewing directions. To capture fine details, inputs are first transformed with positional encoding, which maps coordinates into a high-frequency space allowing the network to model complex variations.
+  </p>
+  <ul>
+    <li><strong>Input Encoding:</strong> Positional encoding is applied to map 3D input coordinates and viewing directions into a higher-dimensional space with multiple frequency bands. This enables the network to capture high-frequency variations more effectively.</li>
+    <li><strong>Network Structure:</strong> The MLP consists of two main blocks:
+      <ul>
+        <li>The first block processes the encoded 3D position through several fully connected layers with ReLU activations.</li>
+        <li>The intermediate output is concatenated with the encoded input and passed through a second block of layers to increase representational power.</li>
+      </ul>
+    </li>
+    <li><strong>Output:</strong> The network predicts two quantities:
+      <ul>
+        <li><em>Density (sigma):</em> Constrained to be non-negative using ReLU.</li>
+        <li><em>RGB color:</em> Dependent on both learned features and the encoded view direction, with values constrained between 0 and 1 via Sigmoid activation.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <figure>
+    <img src="outputimgs/MLP_3d.jpg" alt="MLP Architecture Diagram" style="max-width:100%;height:auto;" />
+    <figcaption>Figure: Neural Radiance Field (NeRF) MLP Architecture.</figcaption>
+  </figure>
+
+  <h3>Volume Rendering</h3>
+  <p>
+    The volume rendering step integrates predicted densities and colors along camera rays to produce the final pixel color. The process involves:
+  </p>
+  <ul>
+    <li>Calculating alpha values representing the probability of light absorption at each sample point.</li>
+    <li>Computing transmittance, the probability that light travels through samples without absorption.</li>
+    <li>Determining weights by combining alpha and transmittance, which quantify each sample’s contribution.</li>
+    <li>Summing weighted colors to obtain the final rendered pixel color.</li>
+  </ul>
+  <p>
+    This discrete volume rendering approximation effectively models how light accumulates and attenuates through the scene, enabling realistic, view-dependent synthesis.
+  </p>
+  <figure>
+    <img src="outputimgs/volrend.jpg" alt="Volrend Equation" style="max-width:100%;height:auto;" />
+    <figcaption>Volrend Equation.</figcaption>
+  </figure>
+</section>
+
+<h3>Training Progress</h3>
+<div class="grid2">
+    <img src="outputimgs/lego_iterations_comparison.jpg">
+</div>
+
+<h3>Validation PSNR Curve</h3>
+<img src="outputimgs/psnr_lego_validation.jpg">
+
+<h3>Spherical Rendering (Provided Test Poses)</h3>
+<video src="outputimgs/lego_spherical_render.mp4" controls></video>
+<p>Top: After 3,000 iterations</p>
+
+<video src="outputimgs/lego_spherical_render_10000.mp4" controls></video>
+<p>Bottom: After 10,000 iterations. Final PSNR: 26.61 for Validation, 25.13 for Training</p>
+---
+
+<!-- ---------------------- PART 2.6 ------------------------- -->
+<h2 id="p26">Part 2.6 — NeRF on My Own Dataset</h2>
+
+<h3>Implementation</h3>
+<p>This time, I used my own data to create a NERF of a Celsisus can. I used the camera intrinsics that were 
+    calculated from part 0 here, and the same model architecture was used. It took some time to figure out good parameters, 
+    but I ended up using a learning rate of 5e-4,and a near, far = 0.3, 1.31. I used 1000 rays per iteration, 64 samples per ray, and trained it for 10,000 epochs. Below you can see my results.</p>
+
+<h3>Training Loss Curve</h3>
+<img src="outputimgs/celsisus_training_Losses.jpg">
+
+<h3>Intermediate Renders</h3>
+<div class="grid2">
+    <img src="outputimgs/iter_01000_view_0.png">
+    <img src="outputimgs/iter_04000_view_0.png">
+    <img src="outputimgs/iter_07000_view_0.png">
+    <img src="outputimgs/iter_09000_view_0.png">
+</div>
+
+<h3>Final Render</h3>
+<div class="grid2">
+    <img src="outputimgs/10000_itereations_celsisus.jpg">
+</div>
+
+<h3>Final Orbit GIF</h3>
+<img src="outputimgs/novel_view (6).gif">
+
+<h3>Discussion</h3>
+<p>There were a lot of challenges I faced with my dataset. The celsius can wasn't as visibile but you can kind of see it in the video. For future use, I would use a different object, something that stands out more. Getting better captures of the object would've greatly improved the NeRF as well.</p>
+
+---
+
+</body>
+</html>
